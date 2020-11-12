@@ -22,4 +22,8 @@
     <string name="error_streams">Error getting Streams</string>
     <string name="error_profile">Error getting Profile</string>
     <string name="error_profile_update">Error updating profile</string>
+    <string name="preference_file_key">twitch_key</string>
+    <string name="accessToken">accessToken</string>
+    <string name="refreshToken">refreshToken</string>
+
 </resources>

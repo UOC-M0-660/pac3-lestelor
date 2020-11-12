@@ -1,6 +1,10 @@
 package edu.uoc.pac3.oauth
 
+import android.app.Activity
+import android.app.Application
 import android.content.ClipData
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -10,11 +14,13 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
 import edu.uoc.pac3.R
+import edu.uoc.pac3.data.SessionManager
 import edu.uoc.pac3.data.TwitchApiService
 import edu.uoc.pac3.data.network.Network.createHttpClient
 import edu.uoc.pac3.data.oauth.OAuthConstants
 import edu.uoc.pac3.data.oauth.OAuthConstants.authorizationUrl
 import edu.uoc.pac3.data.oauth.OAuthTokensResponse
+import edu.uoc.pac3.twitch.streams.StreamsActivity
 import io.ktor.client.features.*
 import io.ktor.client.features.get
 import io.ktor.client.request.*
@@ -68,6 +74,7 @@ class OAuthActivity : AppCompatActivity() {
                                 // Got it!
                                 Log.d("OAuth", "Here is the authorization code! $code")
                                 onAuthorizationCodeRetrieved(code)
+                                startActivityStreamsActivity()
                             } ?: run {
                                 // User cancelled the login flow
                                 // TODO: Handle error
@@ -88,10 +95,6 @@ class OAuthActivity : AppCompatActivity() {
     // on the WebView to obtain the tokens
     private fun onAuthorizationCodeRetrieved(authorizationCode: String) {
 
-
-
-
-
         // Show Loading Indicator
         progressBar.visibility = View.VISIBLE
 
@@ -100,16 +103,20 @@ class OAuthActivity : AppCompatActivity() {
 
 
         // TODO: Get Tokens from Twitch
-        /*GlobalScope.launch(Dispatchers.IO) {
-            val items: List<ClipData.Item> = createHttpClient().get<List<ClipData.Item>>("https://api.example.org/items") {
-                parameter("limit", 10)
-            }
-        }*/
-        GlobalScope.launch(Dispatchers.IO) {
-            TwitchApiService(httpClient).getTokens(authorizationCode)
-        }
         // TODO: Save access token and refresh token using the SessionManager class
+        GlobalScope.launch(Dispatchers.IO) {
+            val response = TwitchApiService(httpClient).getTokens(authorizationCode)
+            response?.accessToken?.let { SessionManager(this@OAuthActivity).saveAccessToken(it) }
+            response?.refreshToken?.let { SessionManager(this@OAuthActivity).saveRefreshToken(it) }
+        }
+
+
     }
 
+
+    fun startActivityStreamsActivity() {
+        val intent = Intent(this, StreamsActivity::class.java)
+        this.startActivity(intent)
+    }
 }
 

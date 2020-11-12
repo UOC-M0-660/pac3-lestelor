@@ -1,15 +1,24 @@
 package edu.uoc.pac3.data
 
+import android.net.Uri
 import android.util.Log
+import edu.uoc.pac3.data.network.Endpoints
+import edu.uoc.pac3.data.oauth.OAuthConstants
+import edu.uoc.pac3.data.oauth.OAuthConstants.authorizationUrl
 import edu.uoc.pac3.data.oauth.OAuthConstants.clientID
 import edu.uoc.pac3.data.oauth.OAuthConstants.clientSecret
+import edu.uoc.pac3.data.oauth.OAuthConstants.numberStreams
 import edu.uoc.pac3.data.oauth.OAuthConstants.redirectUri
+import edu.uoc.pac3.data.oauth.OAuthConstants.scopes
+import edu.uoc.pac3.data.oauth.OAuthConstants.streamsUrl
 import edu.uoc.pac3.data.oauth.OAuthConstants.tokenUrl
 import edu.uoc.pac3.data.oauth.OAuthTokensResponse
 import edu.uoc.pac3.data.oauth.UnauthorizedException
+import edu.uoc.pac3.data.streams.Stream
 import edu.uoc.pac3.data.streams.StreamsResponse
 import edu.uoc.pac3.data.user.User
 import io.ktor.client.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 
 /**
@@ -36,8 +45,27 @@ class TwitchApiService(private val httpClient: HttpClient) {
     /// Gets Streams on Twitch
     @Throws(UnauthorizedException::class)
     suspend fun getStreams(cursor: String? = null): StreamsResponse? {
-        TODO("Get Streams from Twitch")
-        TODO("Support Pagination")
+        //TODO("Get Streams from Twitch")
+
+        if(cursor == null){
+            val response = httpClient.get<StreamsResponse>(Endpoints.liveStreamsTwitch) {
+                headers {
+                    append("Client-Id", clientID)
+                }
+            }
+            return response
+        }else{
+            // TODO("Support Pagination")
+            val response = httpClient.get<StreamsResponse>(Endpoints.liveStreamsTwitch) {
+                headers {
+                    append("first", numberStreams)
+                    append("after", "Bearer $cursor")
+                    append("Client-Id", clientID)
+                }
+            }
+            return response
+        }
+
     }
 
     /// Gets Current Authorized User on Twitch
@@ -51,4 +79,20 @@ class TwitchApiService(private val httpClient: HttpClient) {
     suspend fun updateUserDescription(description: String): User? {
         TODO("Update User Description on Twitch")
     }
+
+
+    @Throws(ClientRequestException::class)
+    suspend fun getRefreshToken(refreshToken: String): OAuthTokensResponse? {
+        var url = Uri.parse(Endpoints.tokensTwitch)
+            .buildUpon()
+            .appendQueryParameter("client_id", OAuthConstants.clientID)
+            .appendQueryParameter("client_secret", OAuthConstants.clientSecret)
+            .appendQueryParameter("refresh_token", refreshToken)
+            .appendQueryParameter("grant_type", "refresh_token")
+            .build()
+
+        val response = httpClient.post<OAuthTokensResponse>(url.toString())
+        return response
+    }
+
 }
