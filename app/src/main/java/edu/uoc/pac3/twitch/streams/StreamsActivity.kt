@@ -80,7 +80,7 @@ class StreamsActivity : AppCompatActivity() {
         }
             streamsResponse?.let {
                 streamsResponse.data?.let {streams->
-                    adapter.setStreams(streams)
+                        adapter.setStreams(streams)
                 }
                 /*streamsResponse.pagination?.cursor?.let {
                     cursor = it
