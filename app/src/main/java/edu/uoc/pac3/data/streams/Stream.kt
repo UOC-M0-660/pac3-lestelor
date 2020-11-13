@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 /**
  * Created by alex on 07/09/2020.
  */
-/*
+
 @Serializable
 data class Stream(
         @SerialName("user_name") val userName: String?,
@@ -18,17 +18,11 @@ data class Stream(
 
 @Serializable
 data class StreamsResponse(
-    val data: List<Stream>? = null,
-)*/
-
-@Serializable
-data class Stream(
-    val userName: String?,
-    val title: String,
-    val thumbnailUrl: String,
+        @SerialName ("data") var data: List<Stream>? = null,
+        @SerialName("pagination") val pagination: Pagination? = null
 )
 
-
-data class StreamsResponse(
-    val data: List<Stream>? = null,
+@Serializable
+data class Pagination(
+        @SerialName("cursor") val cursor: String? = null
 )

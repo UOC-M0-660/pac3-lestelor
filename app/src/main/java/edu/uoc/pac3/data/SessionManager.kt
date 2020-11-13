@@ -14,7 +14,7 @@ import kotlin.coroutines.coroutineContext
 class SessionManager(context: Context) {
 
     private val mContext: Context = context
-    private val sharedPref: SharedPreferences = mContext.getSharedPreferences("adfsd", Context.MODE_PRIVATE)
+    private val sharedPref: SharedPreferences = mContext.getSharedPreferences("tokens", Context.MODE_PRIVATE)
     private val editor = sharedPref.edit()
     private val defaultValue = ""
 

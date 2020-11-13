@@ -1,10 +1,7 @@
 package edu.uoc.pac3.twitch.streams
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,18 +10,22 @@ import edu.uoc.pac3.R
 import edu.uoc.pac3.data.SessionManager
 import edu.uoc.pac3.data.TwitchApiService
 import edu.uoc.pac3.data.network.Network
+import edu.uoc.pac3.data.streams.Pagination
 import edu.uoc.pac3.data.streams.Stream
 import edu.uoc.pac3.data.streams.StreamsResponse
-import edu.uoc.pac3.oauth.LoginActivity
 import io.ktor.client.features.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.lang.reflect.Array.get
+
 
 class StreamsActivity : AppCompatActivity() {
 
     private val TAG = "StreamsActivity"
     private lateinit var adapter: TwitchListAdapter
+    private var cursor: Pagination? = null
+    private lateinit var scrollListener: RecyclerView.OnScrollListener
+    private lateinit var layoutManager: LinearLayoutManager
+    private  var streamsResponseComplete: StreamsResponse = StreamsResponse()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,39 +34,62 @@ class StreamsActivity : AppCompatActivity() {
         // Init RecyclerView
         initRecyclerView()
         // TODO: Get Streams
+        updateStreams()
 
-        val accessToken = SessionManager(this).getAccessToken()
         val refreshToken = SessionManager(this).getRefreshToken()
-        loadStreams(accessToken)
-        Log.d("cfauli", "access token " + accessToken)
+
+        //Log.d("cfauli", "access token " + accessToken)*/
 
 
     }
+
+
 
     private fun initRecyclerView(): TwitchListAdapter {
         // TODO: Implement
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
         // Set Layout Manager
-        val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(this)
+        layoutManager= LinearLayoutManager(this)
         recyclerView.layoutManager = layoutManager
         // Init Adapter
-        adapter = TwitchListAdapter(listOf())
+        adapter = TwitchListAdapter(StreamsResponse(),0,0)
         recyclerView.adapter = adapter
+        // set onscroll listener
+        setRecyclerViewScrollListener(recyclerView)
         return adapter
     }
+    fun updateStreams() {
+        lifecycleScope.launch {
+            val streamResponse = getStreams(cursor)
+            Log.d("cfauli", "StreamsActivity " + streamResponse?.data?.size)
+            streamResponse?.let{
+                updateRecyclerView(it)
+                cursor = streamResponse.pagination
+            }
+        }
+    }
 
-     fun loadStreams(cursor:String? = null) {
+     suspend fun getStreams(cursor: Pagination? = null): StreamsResponse? {
         val httpClient = Network.createHttpClient()
         val twitchApiService = TwitchApiService(httpClient)
+        var streamsResponse: StreamsResponse? = null
+        val accessToken = SessionManager(baseContext).getAccessToken()
+         val refreshToken = SessionManager(baseContext).getRefreshToken()
 
-        lifecycleScope.launch {
-            // Envio cursor
-            var streamsResponse: StreamsResponse? = twitchApiService.getStreams()
-            try {
-                if (cursor==null)        streamsResponse = twitchApiService.getStreams()
-                else  streamsResponse = twitchApiService.getStreams(cursor)
-            } catch (e: ClientRequestException) {
-            val cursor = refreshToken(twitchApiService)
+        try {
+            streamsResponse = accessToken?.let { twitchApiService.getStreams(it, cursor?.cursor) }
+            httpClient.close()
+        } catch (e: ClientRequestException) {
+            Log.d("cfauli", "getStreams error $e")
+        }
+
+
+         return streamsResponse
+
+            /*if (cursor==null)        streamsResponse = twitchApiService.getStreams()
+            else  streamsResponse = twitchApiService.getStreams(cursor)
+
+            refreshToken(twitchApiService)
             val httpClient2 = Network.createHttpClient()
             val twitchApiService2 = TwitchApiService(httpClient2)
             try {
@@ -82,23 +106,31 @@ class StreamsActivity : AppCompatActivity() {
                 streamsResponse.data?.let {streams->
                         adapter.setStreams(streams)
                 }
-                /*streamsResponse.pagination?.cursor?.let {
-                    cursor = it
-                }*/
+                //streamsResponse.pagination?.cursor?.let {
+                    //cursor = it
+                //}
+                cursor = 10.toString()
             }?: run {
                 Toast.makeText(this@StreamsActivity, getString(R.string.error_streams), Toast.LENGTH_SHORT).show()
             }
-        }
+        }*/
 
 
 
      }
 
+    private  fun updateRecyclerView(streamsResponse: StreamsResponse) {
+        val itemStart = streamsResponseComplete.data?.size ?: 0
+        val itemCount = streamsResponse.data?.size ?: 0
 
-    private suspend fun refreshToken(service: TwitchApiService): String? {
+        streamsResponseComplete.data = streamsResponseComplete.data.orEmpty() + streamsResponse.data.orEmpty()
+        adapter.setStreams(streamsResponseComplete, itemStart, itemCount)
+    }
+
+
+    /*private suspend fun refreshToken(service: TwitchApiService): String? {
         val sessionManager = SessionManager(this)
         sessionManager.clearAccessToken()
-        var cursor: String? = null
         try {
             sessionManager.getRefreshToken()?.let {
                 service.getRefreshToken(it)?.let { tokensResponse ->
@@ -118,9 +150,26 @@ class StreamsActivity : AppCompatActivity() {
 
         }
         return cursor
+    }*/
+
+    private fun setRecyclerViewScrollListener(recyclerView: RecyclerView) {
+        scrollListener = object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val lastItem = layoutManager.findLastCompletelyVisibleItemPosition()
+                val itemCount = adapter.itemCount
+                Log.d("cfauli", "StreamsActivity scroll $dx $dy $lastItem $itemCount")
+                if (lastItem + 1 == itemCount) {
+                    Log.d("cfauli", "StreamsActivity cursor $cursor")
+                    updateStreams()
+                }
+            }
+        }
+        recyclerView.addOnScrollListener(scrollListener)
     }
 
 }
+
 
 
 

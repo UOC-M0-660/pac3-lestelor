@@ -25,5 +25,7 @@
     <string name="preference_file_key">twitch_key</string>
     <string name="accessToken">accessToken</string>
     <string name="refreshToken">refreshToken</string>
+    <string name="width_new">"400"</string>
+    <string name="height_new">"200"</string>
 
 </resources>
