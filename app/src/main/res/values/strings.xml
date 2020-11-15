@@ -7,6 +7,10 @@
     <string name="activity_profile_title">Streams</string>
 
     <string name="menu_user">Profile</string>
+    <string name="menu_eye">Eye</string>
+    <string name="menu_exit">Exit</string>
+    <string name="navigation_drawer_open">Open Navigation Drawer</string>
+    <string name="navigation_drawer_close">Close Navigation Drawer</string>
 
     <string name="hint_user_description">Description</string>
     <string name="button_save_description">Update Description</string>

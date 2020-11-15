@@ -9,10 +9,13 @@ import io.ktor.client.engine.*
 object OAuthConstants {
 
     // TODO: Set OAuth2 Variables
-    const val tokenUrl = "https://id.twitch.tv/oauth2/token"
+/*    const val tokenUrl = "https://id.twitch.tv/oauth2/token"
     const val authorizationUrl = "https://id.twitch.tv/oauth2/authorize"
     const val streamsUrl = "https://api.twitch.tv/helix/streams"
+    const val usersUrl = "https://api.twitch.tv/helix/users"*/
+
     const val clientID = "kliszzizapmkgkzpgbs0mlc531qxrj"
+    const val user_id = "603577550"
     // TODO: seems strange that the client secret is in the app
     const val clientSecret = "w52mk080xjl1m0cg8vrnc25l4480wj"
     const val redirectUri = "http://localhost"

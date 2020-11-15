@@ -1,11 +1,24 @@
 package edu.uoc.pac3.twitch.streams
 
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.MenuItem
+import android.view.View
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.navigation.NavigationView
 import edu.uoc.pac3.R
 import edu.uoc.pac3.data.SessionManager
 import edu.uoc.pac3.data.TwitchApiService
@@ -13,12 +26,17 @@ import edu.uoc.pac3.data.network.Network
 import edu.uoc.pac3.data.streams.Pagination
 import edu.uoc.pac3.data.streams.Stream
 import edu.uoc.pac3.data.streams.StreamsResponse
+import edu.uoc.pac3.twitch.profile.ProfileActivity
 import io.ktor.client.features.*
+import kotlinx.android.synthetic.main.activity_streams.*
+import kotlinx.android.synthetic.main.activity_streams_appbar.*
+import kotlinx.android.synthetic.main.activity_streams_appbar.view.*
 import kotlinx.coroutines.launch
 import java.lang.reflect.Array.get
+import kotlin.system.exitProcess
 
 
-class StreamsActivity : AppCompatActivity() {
+class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private val TAG = "StreamsActivity"
     private lateinit var adapter: TwitchListAdapter
@@ -31,16 +49,15 @@ class StreamsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_streams)
 
+        val toolbar = initToolbar()
+        initDrawerLayout(toolbar)
+        initMenuLayout()
+        initSwipeRefreshListener()
+
         // Init RecyclerView
         initRecyclerView()
         // TODO: Get Streams
         updateStreams()
-
-        val refreshToken = SessionManager(this).getRefreshToken()
-
-        //Log.d("cfauli", "access token " + accessToken)*/
-
-
     }
 
 
@@ -58,7 +75,9 @@ class StreamsActivity : AppCompatActivity() {
         setRecyclerViewScrollListener(recyclerView)
         return adapter
     }
+
     fun updateStreams() {
+        Log.d("cfauli", TAG + " cursor: " + cursor?.cursor )
         lifecycleScope.launch {
             val streamResponse = getStreams(cursor)
             Log.d("cfauli", "StreamsActivity " + streamResponse?.data?.size)
@@ -71,13 +90,12 @@ class StreamsActivity : AppCompatActivity() {
 
      suspend fun getStreams(cursor: Pagination? = null): StreamsResponse? {
         val httpClient = Network.createHttpClient()
-        val twitchApiService = TwitchApiService(httpClient)
+        val twitchApiService = TwitchApiService(httpClient, applicationContext)
         var streamsResponse: StreamsResponse? = null
-        val accessToken = SessionManager(baseContext).getAccessToken()
-         val refreshToken = SessionManager(baseContext).getRefreshToken()
+
 
         try {
-            streamsResponse = accessToken?.let { twitchApiService.getStreams(it, cursor?.cursor) }
+            streamsResponse = twitchApiService.getStreams(cursor?.cursor)
             httpClient.close()
         } catch (e: ClientRequestException) {
             Log.d("cfauli", "getStreams error $e")
@@ -166,6 +184,58 @@ class StreamsActivity : AppCompatActivity() {
             }
         }
         recyclerView.addOnScrollListener(scrollListener)
+    }
+
+
+    private fun initToolbar(): Toolbar {
+        val toolbar = findViewById<Toolbar>(R.id.activity_streams_toolbar)
+        toolbar.title = getString(R.string.activity_streams_title)
+        return toolbar
+    }
+
+    fun initDrawerLayout(toolbar: Toolbar) {
+        val toggle = ActionBarDrawerToggle(
+                this, activity_streams_drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
+        )
+        activity_streams_drawer.addDrawerListener(toggle)
+        toggle.syncState()
+    }
+
+    fun initMenuLayout() {
+        nav_view.setNavigationItemSelectedListener(this)
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        //TODO("Implement menu")
+        when (item.itemId) {
+
+            R.id.menu_user -> {
+                val intent = Intent(this, ProfileActivity::class.java)
+                startActivity(intent)
+            }
+            /*R.id.menu_exit -> {
+                finish()
+                exitProcess(0)
+            }*/
+            else -> {
+                Toast.makeText(this,"menu option not implemented!!",Toast.LENGTH_SHORT).show()
+            }
+        }
+
+
+        if (activity_streams_drawer.isDrawerOpen(GravityCompat.START))
+            activity_streams_drawer.closeDrawer(GravityCompat.START)
+        return true
+    }
+
+    fun initSwipeRefreshListener () {
+        swipeRefreshLayout.setOnRefreshListener {
+            TODO("Implement action")
+            // refresh your list contents somehow
+
+            // reset the SwipeRefreshLayout (stop the loading spinner)
+            swipeRefreshLayout.isRefreshing = false
+        }
     }
 
 }

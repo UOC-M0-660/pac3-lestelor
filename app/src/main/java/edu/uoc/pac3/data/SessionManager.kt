@@ -4,6 +4,7 @@ package edu.uoc.pac3.data
 import android.content.Context
 import android.content.SharedPreferences
 import edu.uoc.pac3.R
+import edu.uoc.pac3.data.user.User
 import kotlin.coroutines.coroutineContext
 
 
@@ -22,6 +23,7 @@ class SessionManager(context: Context) {
         // TODO: Implement
         return false
     }
+
 
     fun getAccessToken(): String? {
         // TODO: Implement

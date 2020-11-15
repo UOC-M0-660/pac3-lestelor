@@ -28,6 +28,7 @@
             android:parentActivityName=".oauth.LoginActivity" />
         <activity
             android:name=".twitch.streams.StreamsActivity"
+            android:theme="@style/NoActionBar"
             android:label="@string/activity_streams_title" />
         <activity
             android:name=".twitch.profile.ProfileActivity"
