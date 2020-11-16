@@ -7,9 +7,7 @@ import edu.uoc.pac3.data.network.Endpoints
 import edu.uoc.pac3.data.oauth.OAuthConstants
 import edu.uoc.pac3.data.oauth.OAuthTokensResponse
 import edu.uoc.pac3.data.oauth.UnauthorizedException
-import edu.uoc.pac3.data.streams.Pagination
 import edu.uoc.pac3.data.streams.StreamsResponse
-import edu.uoc.pac3.data.user.User
 import edu.uoc.pac3.data.user.UserResponse
 import io.ktor.client.*
 import io.ktor.client.features.*
@@ -28,7 +26,7 @@ class TwitchApiService(private val httpClient: HttpClient, context: Context) {
     /// Gets Access and Refresh Tokens on Twitch
     suspend fun getTokens(authorizationCode: String): OAuthTokensResponse? {
         //TODO("Get Tokens from Twitch")
-        val response =  httpClient.post<OAuthTokensResponse>(Endpoints.tokensTwitch) {
+        val response =  httpClient.post<OAuthTokensResponse>(Endpoints.tokensTwitchUrl) {
             headers {
                 append("Authorization", "token")
             }
@@ -51,7 +49,7 @@ class TwitchApiService(private val httpClient: HttpClient, context: Context) {
         Log.d("cfauli", TAG + " getStreams cursor $cursor")
         var response: StreamsResponse? = null
         try {
-            response = httpClient.get<StreamsResponse>(Endpoints.liveStreamsTwitch) {
+            response = httpClient.get<StreamsResponse>(Endpoints.liveStreamsTwitchUrl) {
                 headers {
                     append("Client-Id", OAuthConstants.clientID)
                     append("Authorization", "Bearer $accessToken")
@@ -83,7 +81,7 @@ class TwitchApiService(private val httpClient: HttpClient, context: Context) {
         Log.d("cfauli", TAG + " getUser " + accessToken)
         var response: UserResponse? = null
         try {
-            response = httpClient.get<UserResponse>(Endpoints.userTwitch) {
+            response = httpClient.get<UserResponse>(Endpoints.userTwitchUrl) {
                 headers {
                     append("Authorization", "Bearer $accessToken")
                     append("Client-Id", OAuthConstants.clientID)
@@ -102,14 +100,31 @@ class TwitchApiService(private val httpClient: HttpClient, context: Context) {
 
     /// Gets Current Authorized User on Twitch
     @Throws(UnauthorizedException::class)
-    suspend fun updateUserDescription(description: String): User? {
-        TODO("Update User Description on Twitch")
+    suspend fun updateUserDescription(description: String): UserResponse? {
+        //TODO("Update User Description on Twitch")
+        Log.d("cfauli", TAG + " updateUser " + accessToken)
+        var response: UserResponse? = null
+        try {
+            response = httpClient.put<UserResponse>(Endpoints.userTwitchUrl) {
+                headers {
+                    append("Authorization", "Bearer $accessToken")
+                    append("Client-Id", OAuthConstants.clientID)
+                }
+                parameter("description",description)
+            }
+            Log.d("cfauli", "updateUser size " + response.data?.size)
+            return response
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.d("cfauli", TAG + " updateUser error $e")
+            return null
+        }
     }
 
 
     @Throws(ClientRequestException::class)
     suspend fun getRefreshToken(refreshToken: String): OAuthTokensResponse? {
-        var url = Uri.parse(Endpoints.tokensTwitch)
+        var url = Uri.parse(Endpoints.tokensTwitchUrl)
             .buildUpon()
             .appendQueryParameter("client_id", OAuthConstants.clientID)
             .appendQueryParameter("client_secret", OAuthConstants.clientSecret)

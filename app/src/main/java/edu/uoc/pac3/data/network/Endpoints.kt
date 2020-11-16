@@ -14,16 +14,17 @@ object Endpoints {
 
     // TODO: Add all remaining endpoints
 
-    const val tokensTwitch =  oauthBaseUrl + "/token"
+    const val tokensTwitchUrl =  oauthBaseUrl + "/token"
     //Revoke User tokens:
-    const val revokeTokensTwitch =  oauthBaseUrl + "/revoke"
+    const val logoutTwitchUrl =  oauthBaseUrl + "/revoke"
     //Live Streams:
-    const val liveStreamsTwitch =  twitchBaseUrl + "/streams"
+    const val liveStreamsTwitchUrl =  twitchBaseUrl + "/streams"
     //Get Info User:
-    const val userTwitch =  twitchBaseUrl + "/users"
+    const val userTwitchUrl =  twitchBaseUrl + "/users"
     // Get authorization
     const val authorizationUrl = oauthBaseUrl + "/authorize"
-
+    // Check user Status
+    const val checkUserStatusUrl = oauthBaseUrl + "/validate"
 
 
 }

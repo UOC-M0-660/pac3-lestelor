@@ -1,39 +1,27 @@
 package edu.uoc.pac3.twitch.streams
 
-import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.navigation.NavigationView
 import edu.uoc.pac3.R
-import edu.uoc.pac3.data.SessionManager
 import edu.uoc.pac3.data.TwitchApiService
 import edu.uoc.pac3.data.network.Network
 import edu.uoc.pac3.data.streams.Pagination
-import edu.uoc.pac3.data.streams.Stream
 import edu.uoc.pac3.data.streams.StreamsResponse
 import edu.uoc.pac3.twitch.profile.ProfileActivity
 import io.ktor.client.features.*
 import kotlinx.android.synthetic.main.activity_streams.*
-import kotlinx.android.synthetic.main.activity_streams_appbar.*
-import kotlinx.android.synthetic.main.activity_streams_appbar.view.*
 import kotlinx.coroutines.launch
-import java.lang.reflect.Array.get
-import kotlin.system.exitProcess
 
 
 class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
