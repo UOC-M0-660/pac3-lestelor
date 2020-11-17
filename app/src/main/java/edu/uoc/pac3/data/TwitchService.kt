@@ -3,6 +3,7 @@ package edu.uoc.pac3.data
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import edu.uoc.pac3.data.network.Endpoints
 import edu.uoc.pac3.data.oauth.OAuthConstants
 import edu.uoc.pac3.data.oauth.OAuthTokensResponse
@@ -12,19 +13,18 @@ import edu.uoc.pac3.data.user.UserResponse
 import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Created by alex on 24/10/2020.
  */
 
-class TwitchApiService(private val httpClient: HttpClient, context: Context) {
+class TwitchApiService(private val httpClient: HttpClient) {
     private val TAG = "TwitchApiService"
-    val accessToken = SessionManager(context).getAccessToken()
-    val refreshToken = SessionManager(context).getRefreshToken()
 
 
     /// Gets Access and Refresh Tokens on Twitch
-    suspend fun getTokens(authorizationCode: String): OAuthTokensResponse? {
+    suspend fun getTokens(authorizationCode: String): OAuthTokensResponse? = with (Dispatchers.IO){
         //TODO("Get Tokens from Twitch")
         val response =  httpClient.post<OAuthTokensResponse>(Endpoints.tokensTwitchUrl) {
             headers {
@@ -44,10 +44,12 @@ class TwitchApiService(private val httpClient: HttpClient, context: Context) {
 
     /// Gets Streams on Twitch
     @Throws(UnauthorizedException::class)
-    suspend fun getStreams(cursor: String? = null): StreamsResponse?  {
+    suspend fun getStreams(cursor: String? = null, accessToken: String, refreshToken: String): StreamsResponse? = with (Dispatchers.IO)  {
         //TODO("Get Streams from Twitch")
         Log.d("cfauli", TAG + " getStreams cursor $cursor")
+
         var response: StreamsResponse? = null
+
         try {
             response = httpClient.get<StreamsResponse>(Endpoints.liveStreamsTwitchUrl) {
                 headers {
@@ -64,10 +66,14 @@ class TwitchApiService(private val httpClient: HttpClient, context: Context) {
         } catch (e: Exception) {
             e.printStackTrace()
             if (e is ClientRequestException && e.response?.status?.value == 401) {
-                throw UnauthorizedException
-            }
-            Log.d("cfauli", "getStreams error $e")
-            return null
+                Log.d("cfauli",TAG + " getStreams error 401 tokens $accessToken $refreshToken")
+                val oAuthTokensResponse: OAuthTokensResponse? = refreshTokens(refreshToken)
+                oAuthTokensResponse?.let {
+                    Log.d("cfauli",TAG + " getStreams error 401 tokens2 " + oAuthTokensResponse.accessToken + " " + oAuthTokensResponse.refreshToken)
+                    oAuthTokensResponse.refreshToken?.let { it1 -> response = getStreams(cursor,oAuthTokensResponse.accessToken, it1) }
+                }?: throw UnauthorizedException
+                return response
+            } else return null
         }
 
     }
@@ -76,7 +82,7 @@ class TwitchApiService(private val httpClient: HttpClient, context: Context) {
 
     /// Gets Current Authorized User on Twitch
     @Throws(UnauthorizedException::class)
-    suspend fun getUser(): UserResponse? {
+    suspend fun getUser(accessToken: String): UserResponse? = with (Dispatchers.IO) {
         //TODO("Get User from Twitch")
         Log.d("cfauli", TAG + " getUser " + accessToken)
         var response: UserResponse? = null
@@ -100,7 +106,7 @@ class TwitchApiService(private val httpClient: HttpClient, context: Context) {
 
     /// Gets Current Authorized User on Twitch
     @Throws(UnauthorizedException::class)
-    suspend fun updateUserDescription(description: String): UserResponse? {
+    suspend fun updateUserDescription(description: String, accessToken: String): UserResponse? = with (Dispatchers.IO){
         //TODO("Update User Description on Twitch")
         Log.d("cfauli", TAG + " updateUser " + accessToken)
         var response: UserResponse? = null
@@ -123,8 +129,8 @@ class TwitchApiService(private val httpClient: HttpClient, context: Context) {
 
 
     @Throws(ClientRequestException::class)
-    suspend fun getRefreshToken(refreshToken: String): OAuthTokensResponse? {
-        var url = Uri.parse(Endpoints.tokensTwitchUrl)
+    suspend fun refreshTokens(refreshToken: String): OAuthTokensResponse? = with (Dispatchers.IO) {
+        val url = Uri.parse(Endpoints.tokensTwitchUrl)
             .buildUpon()
             .appendQueryParameter("client_id", OAuthConstants.clientID)
             .appendQueryParameter("client_secret", OAuthConstants.clientSecret)
@@ -134,6 +140,7 @@ class TwitchApiService(private val httpClient: HttpClient, context: Context) {
 
         val response = httpClient.post<OAuthTokensResponse>(url.toString())
         return response
+
     }
 
 }

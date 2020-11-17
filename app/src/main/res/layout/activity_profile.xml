@@ -7,11 +7,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/backgroundColor">
-    <WebView
+
+<!--    <WebView
         android:visibility="gone"
         android:id="@+id/webView_profile"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent" />-->
 
 
     <androidx.core.widget.NestedScrollView
@@ -88,6 +89,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/margin_medium"
                 android:text="@string/button_logout" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/clearTokensButton"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:text="@string/button_clear_sokens" />
 
             <ProgressBar
                 android:id="@+id/progressBar"

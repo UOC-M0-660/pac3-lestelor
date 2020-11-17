@@ -19,6 +19,7 @@ import edu.uoc.pac3.data.oauth.OAuthConstants
 import edu.uoc.pac3.twitch.streams.StreamsActivity
 import io.ktor.client.features.*
 import kotlinx.android.synthetic.main.activity_oauth.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -50,13 +51,16 @@ class OAuthActivity : AppCompatActivity() {
         //  Create URI
         val uri = buildOAuthUri()
 
-        // TODO: Set webView Redirect Listener
-        // Set Redirect Listener
-        setWebViewRedirectListener()
+
 
         // Load OAuth Uri
-        webView.settings.javaScriptEnabled = true
-        webView.loadUrl(uri.toString())
+        with(Dispatchers.IO) {
+            // TODO: Set webView Redirect Listener
+            // Set Redirect Listener
+            setWebViewRedirectListener()
+            webView.settings.javaScriptEnabled = true
+            webView.loadUrl(uri.toString())
+        }
 
     }
 
@@ -72,6 +76,8 @@ class OAuthActivity : AppCompatActivity() {
                             // This is our request, obtain the code!
                             request.url.getQueryParameter("code")?.let { code ->
                                 // Got it!
+                                // Show Loading Indicator
+                                progressBar.visibility = View.VISIBLE
                                 try {
                                     onAuthorizationCodeRetrieved(code)
                                     webView.visibility = View.GONE
@@ -98,17 +104,13 @@ class OAuthActivity : AppCompatActivity() {
     // on the WebView to obtain the tokens
     private fun onAuthorizationCodeRetrieved(authorizationCode: String) {
 
-        // Show Loading Indicator
-        progressBar.visibility = View.VISIBLE
-
         // TODO: Create Twitch Service
         val httpClient = createHttpClient()
-        val twitchApiService = TwitchApiService(httpClient, applicationContext)
+        val twitchApiService = TwitchApiService(httpClient)
 
         // TODO: Get Tokens from Twitch
         // TODO: Save access token and refresh token using the SessionManager class
         lifecycleScope.launch {
-
             val response = twitchApiService.getTokens(authorizationCode)
             val sessionManager = SessionManager(applicationContext)
             response?.let {

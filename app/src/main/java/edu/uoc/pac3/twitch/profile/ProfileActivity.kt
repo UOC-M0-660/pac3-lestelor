@@ -30,19 +30,21 @@ class ProfileActivity : AppCompatActivity() {
         setContentView(R.layout.activity_profile)
 
         httpClient = Network.createHttpClient()
-        twitchApiService = TwitchApiService(httpClient, applicationContext)
+        twitchApiService = TwitchApiService(httpClient)
 
         getUser()
         setUpdateDescriptionButtonListener()
+        setClearTokensButtonListener()
         setLogoutButtonListener()
     }
 
     fun getUser() {
 
         var userResponse: UserResponse? = null
+        val accessToken = SessionManager(applicationContext).getAccessToken()
 
         lifecycleScope.launch {
-            userResponse = twitchApiService.getUser()
+            userResponse = accessToken?.let { twitchApiService.getUser(it) }
             Log.d("cfauli", TAG + " user size " + userResponse?.data?.size)
             userResponse?.let{
                 updateView(it)
@@ -59,8 +61,11 @@ class ProfileActivity : AppCompatActivity() {
 
     fun setUpdateDescriptionButtonListener() {
         updateDescriptionButton.setOnClickListener {
+            val accessToken = SessionManager(applicationContext).getAccessToken()
             lifecycleScope.launch {
-                twitchApiService.updateUserDescription(userDescriptionEditText.text.toString())
+                    accessToken?.let {
+                        twitchApiService.updateUserDescription(userDescriptionEditText.text.toString(), accessToken)
+                    }
             }
         }
     }
@@ -78,5 +83,15 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
+    fun setClearTokensButtonListener () {
+        val sessionManager = SessionManager(applicationContext)
+        clearTokensButton.setOnClickListener {
+            sessionManager.clearAccessToken()
+            sessionManager.clearRefreshToken()
+
+            val intent = Intent(this, LoginActivity::class.java)
+            this.startActivity(intent)
+        }
+    }
 
 }

@@ -2,27 +2,8 @@ package edu.uoc.pac3.data
 
 
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
-import android.util.Log
-import android.view.View
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import android.widget.ProgressBar
-import androidx.lifecycle.lifecycleScope
 import edu.uoc.pac3.R
-import edu.uoc.pac3.data.network.Network
-import edu.uoc.pac3.data.oauth.OAuthConstants
-import edu.uoc.pac3.data.user.User
-import edu.uoc.pac3.oauth.OAuthActivity
-import edu.uoc.pac3.twitch.streams.StreamsActivity
-import io.ktor.client.features.*
-import kotlinx.android.synthetic.main.activity_oauth.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import java.util.*
-import kotlin.coroutines.coroutineContext
 
 
 /**

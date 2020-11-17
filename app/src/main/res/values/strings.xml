@@ -32,5 +32,6 @@
     <string name="refreshToken">refreshToken</string>
     <string name="width_new">"400"</string>
     <string name="height_new">"200"</string>
+    <string name="button_clear_sokens">Clear Tokens</string>
 
 </resources>
