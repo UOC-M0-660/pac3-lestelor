@@ -10,21 +10,18 @@ object Endpoints {
     // TODO: Add all remaining endpoints
 
     // Twitch API Endpoints
-    const val twitchBaseUrl = "https://api.twitch.tv/helix"
+    private const val twitchBaseUrl = "https://api.twitch.tv/helix"
 
     // TODO: Add all remaining endpoints
-
+    //Get tokens
     const val tokensTwitchUrl =  oauthBaseUrl + "/token"
-    //Revoke User tokens:
-    const val logoutTwitchUrl =  oauthBaseUrl + "/revoke"
-    //Live Streams:
+    //Get Streams:
     const val liveStreamsTwitchUrl =  twitchBaseUrl + "/streams"
     //Get Info User:
     const val userTwitchUrl =  twitchBaseUrl + "/users"
     // Get authorization
     const val authorizationUrl = oauthBaseUrl + "/authorize"
-    // Check user Status
-    const val checkUserStatusUrl = oauthBaseUrl + "/validate"
+
 
 
 }

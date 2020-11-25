@@ -3,9 +3,12 @@ package edu.uoc.pac3
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.webkit.CookieManager
 import edu.uoc.pac3.oauth.LoginActivity
 import edu.uoc.pac3.data.SessionManager
 import edu.uoc.pac3.twitch.streams.StreamsActivity
+import kotlinx.android.synthetic.main.activity_profile.*
 
 class LaunchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -13,6 +16,16 @@ class LaunchActivity : AppCompatActivity() {
         setContentView(R.layout.activity_launch)
         checkUserSession()
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        val sessionManager = SessionManager(applicationContext)
+
+        Log.d("cfauli", "OnDestroy")
+        sessionManager.clearAccessToken()
+        sessionManager.clearRefreshToken()
+    }
+
 
     private fun checkUserSession() {
         if (SessionManager(this).isUserAvailable()) {
@@ -24,4 +37,5 @@ class LaunchActivity : AppCompatActivity() {
         }
         finish()
     }
+
 }

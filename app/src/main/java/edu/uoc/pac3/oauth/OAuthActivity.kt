@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -96,6 +97,10 @@ class OAuthActivity : AppCompatActivity() {
                 }
                 return super.shouldOverrideUrlLoading(view, request)
             }
+            override fun onPageFinished(view: WebView?, url: String?) {
+                val cookies = CookieManager.getInstance().getCookie(url)
+                Log.d("cfauli", TAG + " cookies $cookies")
+            }
         }
     }
 
@@ -134,5 +139,6 @@ class OAuthActivity : AppCompatActivity() {
         val intent = Intent(this, StreamsActivity::class.java)
         this.startActivity(intent)
     }
+
 }
 

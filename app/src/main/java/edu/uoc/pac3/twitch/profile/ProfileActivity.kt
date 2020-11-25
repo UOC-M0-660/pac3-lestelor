@@ -42,7 +42,7 @@ class ProfileActivity : AppCompatActivity() {
 
         var userResponse: UserResponse? = null
         val accessToken = SessionManager(applicationContext).getAccessToken()
-
+        Log.d("cfauli", TAG + " getUser accestoken " + accessToken)
         lifecycleScope.launch {
             userResponse = accessToken?.let { twitchApiService.getUser(it) }
             Log.d("cfauli", TAG + " user size " + userResponse?.data?.size)

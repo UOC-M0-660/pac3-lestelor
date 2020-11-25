@@ -3,6 +3,9 @@ package edu.uoc.pac3.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import edu.uoc.pac3.R
 
 
@@ -13,13 +16,29 @@ import edu.uoc.pac3.R
 class SessionManager(context: Context) {
 
     private val mContext: Context = context
-    private val sharedPref: SharedPreferences = mContext.getSharedPreferences("tokens", Context.MODE_PRIVATE)
+
+    //private val sharedPref: SharedPreferences = mContext.getSharedPreferences("tokens", Context.MODE_PRIVATE)
+    // this is equivalent to using deprecated MasterKeys.AES256_GCM_SPEC
+    var masterKey: MasterKey = MasterKey.Builder(context, MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
+    private val sharedPref: SharedPreferences = EncryptedSharedPreferences.create(
+            context,
+            "secret_shared_prefs",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+
     private val editor = sharedPref.edit()
     private val defaultValue = ""
 
     fun isUserAvailable(): Boolean {
         // TODO: Implement
-        return getAccessToken()!=null
+        Log.d("cfauli", "isUserAvailable " + (getAccessToken() != null).toString())
+        //return false
+        return getAccessToken()!=defaultValue
     }
 
 
@@ -52,7 +71,7 @@ class SessionManager(context: Context) {
 
     fun saveRefreshToken(refreshToken: String) {
         //TODO("Save Refresh Token")
-        with (editor) {
+        with(editor) {
             putString(mContext.getString(R.string.refreshToken), refreshToken)
             commit()
         }

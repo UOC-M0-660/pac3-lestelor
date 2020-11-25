@@ -19,11 +19,12 @@ import edu.uoc.pac3.data.TwitchApiService
 import edu.uoc.pac3.data.network.Network
 import edu.uoc.pac3.data.streams.Pagination
 import edu.uoc.pac3.data.streams.StreamsResponse
-import edu.uoc.pac3.oauth.LoginActivity
+import edu.uoc.pac3.oauth.OAuthActivity
 import edu.uoc.pac3.twitch.profile.ProfileActivity
 import io.ktor.client.features.*
 import kotlinx.android.synthetic.main.activity_streams.*
 import kotlinx.coroutines.launch
+import kotlin.system.exitProcess
 
 
 class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -59,20 +60,20 @@ class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         layoutManager= LinearLayoutManager(this)
         recyclerView.layoutManager = layoutManager
         // Init Adapter
-        adapter = TwitchListAdapter(StreamsResponse(),0,0)
+        adapter = TwitchListAdapter(StreamsResponse(), 0, 0)
         recyclerView.adapter = adapter
         // set onscroll listener
         setRecyclerViewScrollListener(recyclerView)
         return adapter
     }
 
-    fun updateStreams() {
-        Log.d("cfauli", TAG + " cursor: " + cursor?.cursor )
+    fun updateStreams(reload: Boolean = false) {
+        Log.d("cfauli", TAG + " cursor: " + cursor?.cursor)
         lifecycleScope.launch {
             val streamResponse = getStreams(cursor)
             Log.d("cfauli", "StreamsActivity " + streamResponse?.data?.size)
             streamResponse?.let{
-                updateRecyclerView(it)
+                updateRecyclerView(reload, it)
                 cursor = streamResponse.pagination
             }
         }
@@ -84,18 +85,22 @@ class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
          val sessionManager = SessionManager(applicationContext)
          val accessToken= sessionManager.getAccessToken()
          val refreshToken = sessionManager.getRefreshToken()
-         Log.d("cfauli", TAG + " tokens $accessToken $refreshToken" )
+         Log.d("cfauli", TAG + " tokens $accessToken $refreshToken")
          var streamsResponse: StreamsResponse? = null
 
-        if (accessToken!=null && refreshToken!=null) {
+        if (accessToken!=null && refreshToken!=null && refreshToken.length > 1) {
             try {
-                streamsResponse = twitchApiService.getStreams(cursor?.cursor, accessToken, refreshToken)
+                streamsResponse = twitchApiService.getStreams(
+                    cursor?.cursor,
+                    accessToken,
+                    refreshToken
+                )
                 httpClient.close()
             } catch (e: ClientRequestException) {
                 Log.d("cfauli", "getStreams error $e")
             }
         } else {
-            startActivity(Intent(this, LoginActivity::class.java))
+            startActivity(Intent(this, OAuthActivity::class.java))
             finish()
         }
 
@@ -103,11 +108,11 @@ class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
      }
 
-    private  fun updateRecyclerView(streamsResponse: StreamsResponse) {
+    private  fun updateRecyclerView(reload: Boolean? = null, streamsResponse: StreamsResponse) {
         val itemStart = streamsResponseComplete.data?.size ?: 0
         val itemCount = streamsResponse.data?.size ?: 0
-
-        streamsResponseComplete.data = streamsResponseComplete.data.orEmpty() + streamsResponse.data.orEmpty()
+        if (reload == false) streamsResponseComplete.data = streamsResponseComplete.data.orEmpty() + streamsResponse.data.orEmpty()
+            else streamsResponseComplete.data = streamsResponse.data.orEmpty()
         adapter.setStreams(streamsResponseComplete, itemStart, itemCount)
     }
 
@@ -137,7 +142,11 @@ class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
     fun initDrawerLayout(toolbar: Toolbar) {
         val toggle = ActionBarDrawerToggle(
-                this, activity_streams_drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
+            this,
+            activity_streams_drawer,
+            toolbar,
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_close
         )
         activity_streams_drawer.addDrawerListener(toggle)
         toggle.syncState()
@@ -154,13 +163,14 @@ class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             R.id.menu_user -> {
                 val intent = Intent(this, ProfileActivity::class.java)
                 startActivity(intent)
+
             }
-            /*R.id.menu_exit -> {
+            R.id.menu_exit -> {
                 finish()
                 exitProcess(0)
-            }*/
+            }
             else -> {
-                Toast.makeText(this,"menu option not implemented!!",Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "menu option not implemented!!", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -172,9 +182,12 @@ class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
     fun initSwipeRefreshListener () {
         swipeRefreshLayout.setOnRefreshListener {
-            TODO("Implement action")
+            //TODO("Implement action")
             // refresh your list contents somehow
+            Log.d("cfauli", TAG + " reload true")
 
+            cursor = null
+            updateStreams(true)
             // reset the SwipeRefreshLayout (stop the loading spinner)
             swipeRefreshLayout.isRefreshing = false
         }

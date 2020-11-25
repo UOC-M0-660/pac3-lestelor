@@ -52,6 +52,18 @@ object Network {
             /*engine {
                 addInterceptor(CurlInterceptor(Loggable { Log.v("Curl", it) }))
             }*/
+
+            //Esto os permitirá ver todos los Logs de Ktor en el "LogCat" para tener más detalles
+            // de lo que está ocurriendo (recordar bajar el nivel de filtro de Info a Verbose)
+
+            install(Logging) {
+                logger = object: Logger {
+                    override fun log(message: String) {
+                        Log.v("Ktor", message)
+                    }
+                }
+                level = LogLevel.ALL
+            }
         }
     }
     private val json = Json {

@@ -23,6 +23,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    externalNativeBuild {
+        cmake {
+            path file('CMakeLists.txt')
+        }
+    }
 }
 
 dependencies {
@@ -64,4 +69,6 @@ dependencies {
 
     //compile "org.jetbrains.kotlin:kotlin-reflect:1.4.10"
     implementation 'com.squareup.picasso:picasso:2.71828'
+
+    implementation "androidx.security:security-crypto:1.1.0-alpha02"
 }

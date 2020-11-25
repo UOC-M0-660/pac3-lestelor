@@ -38,7 +38,7 @@ class TwitchApiService(private val httpClient: HttpClient) {
             parameter("redirect_uri", OAuthConstants.redirectUri)
             body = "Command"
         }
-        Log.d("cfauli", TAG + " Access Token: ${response.accessToken} Refresh Token: ${response.refreshToken}")
+        Log.d("cfauli", TAG + "getTokens Access Token: ${response.accessToken} Refresh Token: ${response.refreshToken}")
         return response
     }
 
@@ -66,7 +66,7 @@ class TwitchApiService(private val httpClient: HttpClient) {
         } catch (e: Exception) {
             e.printStackTrace()
             if (e is ClientRequestException && e.response?.status?.value == 401) {
-                Log.d("cfauli",TAG + " getStreams error 401 tokens $accessToken $refreshToken")
+                Log.d("cfauli",TAG + " getStreams error 401 tokensi $accessToken $refreshToken")
                 val oAuthTokensResponse: OAuthTokensResponse? = refreshTokens(refreshToken)
                 oAuthTokensResponse?.let {
                     Log.d("cfauli",TAG + " getStreams error 401 tokens2 " + oAuthTokensResponse.accessToken + " " + oAuthTokensResponse.refreshToken)
