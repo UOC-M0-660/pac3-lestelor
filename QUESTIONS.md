@@ -8,39 +8,24 @@
 Las tareas de red son asíncronas y requieren de un tiempo para ser procesadas. Además, normalmente requieren de información validada por el usuario. 
 Es fundamental que las app sean procesadas en backgruound, dentro del ciclo de vida de la propia activity, siendo destruidas las llamadas cuando la activity es destruida. Existe un ciclo de vida optimizado para las llamadas de red, en concreto Dispatchers.IO.
 Otras actividades en background tienen otros lifecycles óptimos (https://medium.com/androiddevelopers/coroutines-on-android-part-i-getting-the-background-3e0e54d20bb):
-+-----------------------------------+
-| Dispatchers.Main |
-+-----------------------------------+
-| Main thread on Android, interact |
-| with the UI and perform light |
-| work |
-+-----------------------------------+
-| - Calling suspend functions |
-| - Call UI functions |
-| - Updating LiveData |
-+-----------------------------------+
 
-+-----------------------------------+
-| Dispatchers.IO |
-+-----------------------------------+
-| Optimized for disk and network IO |
-| off the main thread |
-+-----------------------------------+
-| - Database* |
-| - Reading/writing files |
-| - Networking** |
-+-----------------------------------+
+Dispatchers.Main:
 
-+-----------------------------------+
-| Dispatchers.Default |
-+-----------------------------------+
-| Optimized for CPU intensive work |
-| off the main thread |
-+-----------------------------------+
-| - Sorting a list |
-| - Parsing JSON |
-| - DiffUtils |
-+-----------------------------------+
+Calling suspend functions
+Call UI functions
+Updating LiveData
+
+Dispatchers.IO:
+
+Database
+Reading/writing files
+Networking
+
+Dispatchers.Default:
+
+Sorting a list
+Parsing JSON
+DiffUtils
 
 
 ##### ¿Qué pasaría si intentamos actualizar la recyclerview con nuevos streams después de que el usuario haya cerrado la aplicación?
