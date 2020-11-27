@@ -13,10 +13,15 @@ import edu.uoc.pac3.R
  * Created by alex on 06/09/2020.
  */
 
+// Save a load tokens from sharedpreferences. A context where the values are stored is an input parametter.
+// It is used the applicationcontext since it is unique and alive during all the lifecycle of the activity.
+// Other context as the one attached to the main activity could have been used
+
 class SessionManager(context: Context) {
 
     private val mContext: Context = context
 
+    // Use of encrypted sharedpreferences in order hide the values accessible in /data/data/edu.uoc.pac3/shared_prefs
     //private val sharedPref: SharedPreferences = mContext.getSharedPreferences("tokens", Context.MODE_PRIVATE)
     // this is equivalent to using deprecated MasterKeys.AES256_GCM_SPEC
     var masterKey: MasterKey = MasterKey.Builder(context, MasterKey.DEFAULT_MASTER_KEY_ALIAS)
@@ -32,19 +37,20 @@ class SessionManager(context: Context) {
     )
 
     private val editor = sharedPref.edit()
-    private val defaultValue = ""
 
+
+    // Understand the user is not available sharedpreferences is null
     fun isUserAvailable(): Boolean {
         // TODO: Implement
         Log.d("cfauli", "isUserAvailable " + (getAccessToken() != null).toString())
         //return false
-        return getAccessToken()!=defaultValue
+        return getAccessToken()!=null
     }
 
 
     fun getAccessToken(): String? {
         // TODO: Implement
-        return sharedPref.getString(mContext.getString(R.string.accessToken), defaultValue)
+        return sharedPref.getString(mContext.getString(R.string.accessToken), null)
     }
 
 
@@ -66,7 +72,7 @@ class SessionManager(context: Context) {
 
     fun getRefreshToken(): String? {
         //TODO("Get Refresh Token")
-        return sharedPref.getString(mContext.getString(R.string.refreshToken), defaultValue)
+        return sharedPref.getString(mContext.getString(R.string.refreshToken), null)
     }
 
     fun saveRefreshToken(refreshToken: String) {

@@ -40,9 +40,13 @@ class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_streams)
 
+        // A toolbar is necessary to put the menu ant the left side
         val toolbar = initToolbar()
+
+        // Init the menu options as dropdown where the user can go to their profile, exit the activity etc.
         initDrawerLayout(toolbar)
         initMenuLayout()
+        // Actions to do when the window is swiped down
         initSwipeRefreshListener()
 
         // Init RecyclerView
@@ -67,6 +71,9 @@ class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         return adapter
     }
 
+    // if no parameter is passed, reload is false
+    // reload is true when the windows is swiped down and then passed to the updaterecyclerciew function
+
     fun updateStreams(reload: Boolean = false) {
         Log.d("cfauli", TAG + " cursor: " + cursor?.cursor)
         lifecycleScope.launch {
@@ -78,6 +85,10 @@ class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             }
         }
     }
+
+
+    // call the getStreams TwitchService function passing the tokens that are stored in the sharedpreferences
+    // If no response call the OAuthActivity where new token would be retrieved
 
      suspend fun getStreams(cursor: Pagination? = null): StreamsResponse? {
          val httpClient = Network.createHttpClient()
@@ -108,11 +119,16 @@ class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
      }
 
+
+    // update the adapter with the 20 new streams
+    // If this call comes from a reload then the list of streams is initialised again with the first 20 entries
     private  fun updateRecyclerView(reload: Boolean? = null, streamsResponse: StreamsResponse) {
         val itemStart = streamsResponseComplete.data?.size ?: 0
         val itemCount = streamsResponse.data?.size ?: 0
+
         if (reload == false) streamsResponseComplete.data = streamsResponseComplete.data.orEmpty() + streamsResponse.data.orEmpty()
             else streamsResponseComplete.data = streamsResponse.data.orEmpty()
+
         adapter.setStreams(streamsResponseComplete, itemStart, itemCount)
     }
 
@@ -133,13 +149,15 @@ class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         recyclerView.addOnScrollListener(scrollListener)
     }
 
-
+   // Init toolbar with the name
     private fun initToolbar(): Toolbar {
         val toolbar = findViewById<Toolbar>(R.id.activity_streams_toolbar)
         toolbar.title = getString(R.string.activity_streams_title)
         return toolbar
     }
 
+
+    //  Create the menu
     fun initDrawerLayout(toolbar: Toolbar) {
         val toggle = ActionBarDrawerToggle(
             this,
@@ -152,10 +170,12 @@ class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         toggle.syncState()
     }
 
+    // Listen the option selected
     fun initMenuLayout() {
         nav_view.setNavigationItemSelectedListener(this)
     }
 
+    // In case profile item selected, launch ProfileActivity
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         //TODO("Implement menu")
         when (item.itemId) {
@@ -174,11 +194,14 @@ class StreamsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             }
         }
 
-
+        // Close drawer when anything is selected
         if (activity_streams_drawer.isDrawerOpen(GravityCompat.START))
             activity_streams_drawer.closeDrawer(GravityCompat.START)
         return true
     }
+
+    // when reload, update the recyclerview with cursor=null, i.e. start againg with the 20 first
+    // reload is set to true in order not to show the complete list but strats a new one
 
     fun initSwipeRefreshListener () {
         swipeRefreshLayout.setOnRefreshListener {

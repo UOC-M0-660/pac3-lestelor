@@ -26,8 +26,12 @@ class TwitchListAdapter(private var streams: StreamsResponse, itemStart: Int, it
 
     fun setStreams(streams: StreamsResponse, itemStart: Int, itemCount: Int) {
         this.streams = streams
+
+
         // Reloads the RecyclerView with new adapter data
         //notifyDataSetChanged()
+
+        // Instead of reloading the whole list of Streams, here only the 20 additional are informed to the Adapter to be loaded
         notifyItemRangeInserted(itemStart, itemCount)
     }
 
@@ -56,6 +60,7 @@ class TwitchListAdapter(private var streams: StreamsResponse, itemStart: Int, it
         // Set View Click Listener
         holder.view.setOnClickListener { v ->
             val context = v.context
+            // Here it is possible to add a listener when clicking any of the streams. An animation could be used
             /*val animation = ActivityOptions.makeCustomAnimation(holder.view.context, R.anim.translate_in_bottom,
                     R.anim.translate_out_bottom).toBundle()
             val intent = Intent(context, BookDetailActivity::class.java)

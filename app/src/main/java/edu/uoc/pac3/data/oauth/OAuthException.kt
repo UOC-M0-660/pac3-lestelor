@@ -10,10 +10,7 @@ import kotlinx.android.synthetic.main.activity_profile.*
 
 
 /*sealed class OAuthException: Throwable()*/
-sealed class OAuthException  : Exception() {
-
-}
-
+sealed class OAuthException  : Exception()
 
 // Use this exception to indicate user is not authorized
 // Can be throw in the network layer and caught in the Activities

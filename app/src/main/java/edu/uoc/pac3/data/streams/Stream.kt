@@ -8,6 +8,9 @@ import kotlinx.serialization.Serializable
  * Created by alex on 07/09/2020.
  */
 
+// Must be serializable since the TwitchService functions are suspended. Each http response parameter is
+// mapped to a variable
+
 @Serializable
 data class Stream(
         @SerialName("user_name") val userName: String?,

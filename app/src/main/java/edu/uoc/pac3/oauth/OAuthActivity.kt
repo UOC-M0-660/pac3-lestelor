@@ -9,6 +9,7 @@ import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import edu.uoc.pac3.R
@@ -35,6 +36,27 @@ class OAuthActivity : AppCompatActivity() {
         launchOAuthAuthorization()
     }
 
+    // The httpclient is not used. The login is performed directly via a web conexion
+    // It launches a webview with Java enabled and a listener for the response, that contains the authorization code
+    // necessary to retrieve the tokens (see that this code is not necessary for refreshing the tokens since only the
+    // refresh code is used)
+
+
+    private fun launchOAuthAuthorization() {
+        //  Create URI
+        val uri = buildOAuthUri()
+
+        // Load OAuth Uri
+        with(Dispatchers.IO) {
+            // TODO: Set webView Redirect Listener
+            // Set Redirect Listener
+            setWebViewRedirectListener()
+            webView.settings.javaScriptEnabled = true
+            webView.loadUrl(uri.toString())
+        }
+
+    }
+
     fun buildOAuthUri(): Uri {
         // TODO: Create URI
         val uri = Uri.parse(Endpoints.authorizationUrl)
@@ -48,22 +70,9 @@ class OAuthActivity : AppCompatActivity() {
         return uri
     }
 
-    private fun launchOAuthAuthorization() {
-        //  Create URI
-        val uri = buildOAuthUri()
 
-
-
-        // Load OAuth Uri
-        with(Dispatchers.IO) {
-            // TODO: Set webView Redirect Listener
-            // Set Redirect Listener
-            setWebViewRedirectListener()
-            webView.settings.javaScriptEnabled = true
-            webView.loadUrl(uri.toString())
-        }
-
-    }
+    // Listens for the parameter code in the http response
+    // If the case, stops the progressbar and starts the process for getting the tokens
 
     fun setWebViewRedirectListener() {
         webView.webViewClient = object : WebViewClient() {
@@ -90,7 +99,10 @@ class OAuthActivity : AppCompatActivity() {
                             } ?: run {
                                 // User cancelled the login flow
                                 // TODO: Handle error
+                                // Not sure what to do, but better start the login again
                                 Log.d("cfauli", TAG + " " + getString(R.string.error_oauth))
+                                Toast.makeText(this@OAuthActivity,  "Login not successful. Please, try again", Toast.LENGTH_SHORT).show()
+                                startActivity(Intent(this@OAuthActivity, LoginActivity::class.java))
                             }
                         }
                     }
@@ -122,7 +134,6 @@ class OAuthActivity : AppCompatActivity() {
                 sessionManager.saveAccessToken(it.accessToken)
                 it.refreshToken?.let { it1 -> sessionManager.saveRefreshToken(it1) }
                 httpClient.close()
-                Log.d("cfauli", TAG + " accestoken " + response.accessToken)
                 startActivityStreamsActivity()
             } ?: run {
                 webView.visibility = View.VISIBLE
@@ -134,10 +145,10 @@ class OAuthActivity : AppCompatActivity() {
 
     }
 
-
+    // Show streams activity. Must be put out of the coroutine context.
     fun startActivityStreamsActivity() {
         val intent = Intent(this, StreamsActivity::class.java)
-        this.startActivity(intent)
+        startActivity(intent)
     }
 
 }

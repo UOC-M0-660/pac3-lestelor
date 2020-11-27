@@ -6,6 +6,9 @@ import android.os.Bundle
 import edu.uoc.pac3.R
 import kotlinx.android.synthetic.main.activity_login.*
 
+
+// This activity waits until the login button is pressed
+
 class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

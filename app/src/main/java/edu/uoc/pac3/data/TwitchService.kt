@@ -1,9 +1,7 @@
 package edu.uoc.pac3.data
 
-import android.content.Context
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import edu.uoc.pac3.data.network.Endpoints
 import edu.uoc.pac3.data.oauth.OAuthConstants
 import edu.uoc.pac3.data.oauth.OAuthTokensResponse
@@ -24,13 +22,15 @@ class TwitchApiService(private val httpClient: HttpClient) {
 
 
     /// Gets Access and Refresh Tokens on Twitch
+    //https://dev.twitch.tv/docs/authentication/getting-tokens-oauth#oauth-authorization-code-flow
+    //https://medium.com/l-r-engineering/oauth2-in-android-authorization-code-flow-ffc4355dd473
+    
     suspend fun getTokens(authorizationCode: String): OAuthTokensResponse? = with (Dispatchers.IO){
         //TODO("Get Tokens from Twitch")
         val response =  httpClient.post<OAuthTokensResponse>(Endpoints.tokensTwitchUrl) {
             headers {
                 append("Authorization", "token")
             }
-
             parameter("client_id", OAuthConstants.clientID)
             parameter("client_secret", OAuthConstants.clientSecret)
             parameter("code", authorizationCode)
@@ -43,13 +43,19 @@ class TwitchApiService(private val httpClient: HttpClient) {
     }
 
     /// Gets Streams on Twitch
+    // https://dev.twitch.tv/docs/api/reference#get-streams
+    // The output must be the same as in https://www.twitch.tv/directory/all?sort=VIEWER_COUNT
+
+    // In case of error, check if 401 and then refresh tokens and try again
+    // Actually, if 401, it keeps trying until it get the streams. It could be improved in order to
+    // repeat the cycle only a specific number of times
+
     @Throws(UnauthorizedException::class)
     suspend fun getStreams(cursor: String? = null, accessToken: String, refreshToken: String): StreamsResponse? = with (Dispatchers.IO)  {
         //TODO("Get Streams from Twitch")
         Log.d("cfauli", TAG + " getStreams cursor $cursor")
 
         var response: StreamsResponse? = null
-
         try {
             response = httpClient.get<StreamsResponse>(Endpoints.liveStreamsTwitchUrl) {
                 headers {
@@ -80,7 +86,11 @@ class TwitchApiService(private val httpClient: HttpClient) {
 
 
 
-    /// Gets Current Authorized User on Twitch
+    /// Gets data of Current Authorized User on Twitch: username, description, view_count and profile_image_url
+    // As in https://dev.twitch.tv/docs/api/reference#get-users
+    // It shows the list of users so it is stored in a list (possibility to send different users to fetch the data)
+    // The first in the list is the actual user.
+
     @Throws(UnauthorizedException::class)
     suspend fun getUser(accessToken: String): UserResponse? = with (Dispatchers.IO) {
         //TODO("Get User from Twitch")
@@ -104,7 +114,9 @@ class TwitchApiService(private val httpClient: HttpClient) {
 
     }
 
-    /// Gets Current Authorized User on Twitch
+    /// Update User Data on Twitch
+    // https://dev.twitch.tv/docs/api/reference#update-user
+
     @Throws(UnauthorizedException::class)
     suspend fun updateUserDescription(description: String, accessToken: String): UserResponse? = with (Dispatchers.IO){
         //TODO("Update User Description on Twitch")
@@ -127,6 +139,8 @@ class TwitchApiService(private val httpClient: HttpClient) {
         }
     }
 
+    // https://medium.com/l-r-engineering/oauth2-in-android-authorization-code-flow-ffc4355dd473
+    // The refresh token is used to get new tokens
 
     @Throws(ClientRequestException::class)
     suspend fun refreshTokens(refreshToken: String): OAuthTokensResponse? = with (Dispatchers.IO) {
